@@ -180,7 +180,12 @@ def receber_mensagem(update: Update, context: CallbackContext):
     update.message.reply_media_group(media=lista_qrcodes)
 
 def main():
-    iniciar_banco()
+    try:
+        iniciar_banco()
+        logging.info("Banco de dados iniciado com sucesso.")
+    except Exception as e:
+        logging.error(f"Erro ao conectar ao banco de dados: {e}")
+
     updater = Updater(token=TELEGRAM_TOKEN, use_context=True)
     dispatcher = updater.dispatcher
 
