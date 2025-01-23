@@ -8,6 +8,7 @@ from PIL import Image
 from io import BytesIO
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 from telegram import Update, InputMediaPhoto
+import requests
 
 # Carregar variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -16,8 +17,6 @@ load_dotenv()
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-
-
 PORT = os.getenv("PORT")
 
 # Credenciais do banco de dados remoto
@@ -118,7 +117,8 @@ def help_command(update: Update, context: CallbackContext):
         "/help - Mostra esta mensagem de ajuda.\n"
         "/total - Mostra o total de ingressos gerados.\n"
         "/norole - Mostra quantas pessoas já entraram no evento.\n"
-        "/delete - Apaga todos os registros do banco de dados.\n\n"
+        "/delete - Apaga todos os registros do banco de dados.\n"
+        "/status - Mostra informações sobre o webhook e o bot.\n\n"
         "📌 *Como gerar ingressos:*\n"
         "Envie o nome + número de convites.\n"
         "Exemplo: *João 3* (gera 3 QR Codes para João)"
@@ -179,6 +179,27 @@ def receber_mensagem(update: Update, context: CallbackContext):
 
     update.message.reply_media_group(media=lista_qrcodes)
 
+def status_command(update: Update, context: CallbackContext):
+    try:
+        response = requests.get(f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getWebhookInfo")
+        webhook_info = response.json()
+
+        if webhook_info["ok"]:
+            info = webhook_info["result"]
+            mensagem = (
+                f"🌐 *Webhook Status:*\n"
+                f"- URL: {info.get('url', 'N/A')}\n"
+                f"- Pending Updates: {info.get('pending_update_count', 'N/A')}\n"
+                f"- Last Error Date: {info.get('last_error_date', 'N/A')}\n"
+                f"- Last Error Message: {info.get('last_error_message', 'N/A')}\n"
+            )
+            update.message.reply_text(mensagem, parse_mode='Markdown')
+        else:
+            update.message.reply_text("Erro ao obter informações do webhook.")
+    except Exception as e:
+        update.message.reply_text(f"Erro ao consultar status do webhook: {e}")
+
+# Função principal
 def main():
     try:
         iniciar_banco()
@@ -195,16 +216,18 @@ def main():
     dispatcher.add_handler(CommandHandler("total", total_command))
     dispatcher.add_handler(CommandHandler("norole", in_role_command))
     dispatcher.add_handler(CommandHandler("delete", delete_command))
+    dispatcher.add_handler(CommandHandler("status", status_command))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, receber_mensagem))
 
     # Usar webhook no Railway
     updater.start_webhook(
         listen="0.0.0.0",
-        port=PORT,
+        port=int(PORT),
         url_path=TELEGRAM_TOKEN,
-        webhook_url=f"{app_url}/{TELEGRAM_TOKEN}"  # Substitua <sua-app>
+        webhook_url=f"{app_url}/{TELEGRAM_TOKEN}"
     )
     updater.idle()
+    
+# Executar a função principal diretamente
+main()
 
-if __name__ == '__main__':
-    main()
