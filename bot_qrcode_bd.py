@@ -26,6 +26,7 @@ DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_PORT = int(os.getenv("DB_PORT"))
+app_url = os.getenv("APP_URL")
 
 # Função para inicializar o banco de dados
 def iniciar_banco():
@@ -196,7 +197,7 @@ def main():
         listen="0.0.0.0",
         port=PORT,
         url_path=TELEGRAM_TOKEN,
-        webhook_url=f"https://<sua-app>.railway.app/{TELEGRAM_TOKEN}"  # Substitua <sua-app>
+        webhook_url=f"{app_url}/{TELEGRAM_TOKEN}"  # Substitua <sua-app>
     )
     updater.idle()
 
