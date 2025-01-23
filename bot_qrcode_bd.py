@@ -18,7 +18,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 
-PORT = int(os.getenv("PORT", 8443)) 
+PORT = os.getenv("PORT")
 
 # Credenciais do banco de dados remoto
 DB_HOST = os.getenv("DB_HOST")
