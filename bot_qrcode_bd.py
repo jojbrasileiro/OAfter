@@ -222,12 +222,12 @@ def main():
     # Usar webhook no Railway
     updater.start_webhook(
         listen="0.0.0.0",
-        port=int(PORT),
+        port=8080,
         url_path=TELEGRAM_TOKEN,
         webhook_url=f"{app_url}/{TELEGRAM_TOKEN}"
     )
     updater.idle()
-    
+
 # Executar a função principal diretamente
 main()
 
